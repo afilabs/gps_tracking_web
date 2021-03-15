@@ -1,24 +1,42 @@
 import React from 'react';
 import { compose, withProps } from 'recompose';
-import { withScriptjs, withGoogleMap, GoogleMap, Marker } from 'react-google-maps';
+import { withScriptjs, withGoogleMap, GoogleMap, Marker, InfoWindow } from 'react-google-maps';
+import driver from './assets/driver.png';
 
 class Map extends React.Component {
+  state = {
+    selectedLocation: null,
+  };
+
   render() {
     const bounds = new window.google.maps.LatLngBounds();
-    // eslint-disable-next-line
-    this.props.locations.map((location) => {
-      bounds.extend(new window.google.maps.LatLng(location.lat, location.lng));
-    });
+    const locations = this.props.locations;
 
-    this.refs.map && this.refs.map.fitBounds(bounds);
+    for (var i = 0; i < locations.length; i++) {
+      bounds.extend(locations[i]);
+    };
+    this.map && this.map.fitBounds(bounds);
 
     return (
-      <GoogleMap ref="map">
+      <GoogleMap ref={elem => this.map = elem} >
         {this.props.locations.map((location, index) => (
           <Marker
+            icon={{
+              url: driver,
+              scaledSize: { width: 35, height: 44 },
+            }}
             key={index}
             position={{ ...location }}
-          />
+            onClick={() => this.setState({ selectedLocation: location })}
+          >
+            {this.state.selectedLocation === location &&
+              <InfoWindow onCloseClick={() => this.setState({ selectedLocation: null })}>
+                <div style={{ color: 'black' }}>
+                  {location.lat}, {location.lng} 
+                </div>
+              </InfoWindow>
+            }
+          </Marker>
         ))}
       </GoogleMap>
     );
